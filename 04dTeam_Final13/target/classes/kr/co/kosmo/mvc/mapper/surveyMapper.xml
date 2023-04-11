@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="survey">
+	<insert id="add" parameterType="survo">
+		insert into survey
+		values(survey_seq.nextVal,#{sub},#{code},sysdate)
+	</insert>
+
+	<insert id="addcontent" parameterType="java.util.List">
+		<selectKey keyProperty="id" resultType="int" order="BEFORE">
+			select
+			survey_seq.currVal from dual
+		</selectKey>
+		<foreach collection="list" item="e" separator=" "
+			open="insert all" close="select * from dual">
+			into surveycontent
+			values(#{e.subtype},#{id},#{e.surveytitle},0)
+		</foreach>
+	</insert>
+
+	<resultMap type="survo" id="surview">
+		<id property="num" column="num" javaType="int" />
+		<result property="sub" column="sub" />
+		<result property="sdate" column="sdate" />
+		<collection property="subvey" javaType="java.util.List"
+			ofType="subvo">
+			<result property="subcode" column="subcode" javaType="int" />
+			<result property="subtype" column="subtype" />
+			<result property="surveytitle" column="surveytitle" />
+			<result property="surveycnt" column="surveycnt" javaType="int" />
+		</collection>
+	</resultMap>
+	<select id="adminDetail" parameterType="int" resultMap="surview">
+		select
+		s.num,s.sub,s.sdate,
+		sc.subtype,sc.subcode,sc.surveytitle,sc.surveycnt
+		from survey s,surveycontent sc
+		where s.num=sc.subcode and s.num=#{num}
+	</select>
+
+	<update id="updateSurveyCnt" parameterType="subvo">
+		update surveycontent
+		set
+		surveycnt=surveycnt+1
+		where subcode=#{subcode} and
+		subtype=#{subtype}
+	</update>
+
+	<!-- list -->
+	<resultMap type="survo" id="surveylist">
+		<id property="num" column="num" javaType="int" />
+		<result property="sub" column="sub" />
+		<result property="code" column="code" />
+		<result property="sdate" column="sdate" />
+		<result property="surveytotal" column="total" />
+	</resultMap>
+	<select id="listSurvey" resultMap="surveylist">
+		select
+		s.num,s.sub,s.code,sum(sc.surveycnt) total,s.sdate
+		from survey s,
+		surveycontent sc where s.num=sc.subcode and s.sub is not
+		null
+		GROUP BY
+		s.num,s.sub,s.code,s.sdate
+		order by num DESC
+	</select>
+
+	<select id="surveychk" parameterType="scvo" resultType="int">
+		select
+		count(*) from surveycheck where sccode=#{sccode} and scid=#{scid}
+	</select>
+
+	<insert id="addsc" parameterType="scvo">
+		insert into surveycheck
+		values(SURVEYCHECK_SEQ.nextval,#{sccode},#{scid},#{subtype})
+	</insert>
+
+	<select id="genderc" parameterType="int" resultType="stvo">
+		select
+		sum(decode(substr(mjumin,8,1),1,1,3,1)) msum,
+		sum(decode(substr(mjumin,8,1),2,1,4,1)) wsum from member_semi where
+		mid in(select scid from surveycheck where sccode=#{sccode})
+	</select>
+</mapper>

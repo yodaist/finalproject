@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="flower">
+
+	<select id="flowerAlllist" resultType="flowerVO">
+		select fno,ftitle,fimg,flocation,fstart,fend,fdate from festival_final
+	</select>
+
+
+	<select id="flowerlist" resultType="flowerVO" parameterType="String">
+		select fno,ftitle,fimg,flocation,fstart,fend,fdate from festival_final WHERE flo=#{flo}
+	</select>
+
+
+</mapper>
